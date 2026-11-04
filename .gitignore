@@ -1,0 +1,25 @@
+
+server/.vs/
+
+server/AuthService/Auth.API/obj/
+
+server/AuthService/logs
+
+server/UserManagementService/logs
+
+server/ProductService/logs
+
+server/OrderService/logs 
+
+server/BranchService/logs
+
+client/package-lock.json
+server/DataContext/Domain/obj/Debug/net6.0/ref/
+server/DataContext/Domain/bin/Debug/net6.0/
+server/DataContext/Domain/obj/
+
+client/.env.local
+test/.vs
+
+# Qoder IDE local data (skills, cache, settings)
+.qoder/

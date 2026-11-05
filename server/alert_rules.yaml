@@ -1,0 +1,19 @@
+groups:
+- name: microservices
+  rules:
+  - alert: ServiceDown
+    expr: up{app="scm"} == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service {{ $labels.instance }} is down"
+      description: "{{ $labels.instance }} has been down for more than 5 minutes."
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{status="500", app="scm"}[5m]) > 0.01
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High error rate on {{ $labels.instance }}"
+      description: "{{ $labels.instance }} has a high error rate (>1% of requests are 500 errors)."

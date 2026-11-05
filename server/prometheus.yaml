@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - "alert_rules.yaml"
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+  - job_name: "scm-microservices"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "auth_service:11114" # auth service
+          - "user_management_service:11113" # user mng service
+          - "product_service:11117" # product service
+          - "order_service:11118" # order service
+          - "branch_service:11119"
+        labels:
+          app: "scm"

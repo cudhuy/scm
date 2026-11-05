@@ -21,7 +21,7 @@ namespace Domain.Context
             string connectionString = config.GetConnectionString("DefaultConnection");
 
             var optionsBuilder = new DbContextOptionsBuilder<SCMDbContext>();
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            optionsBuilder.UseMySQL(connectionString);
 
             return new SCMDbContext(optionsBuilder.Options);
         }

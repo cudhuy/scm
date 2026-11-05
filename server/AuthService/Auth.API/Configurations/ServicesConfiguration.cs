@@ -10,7 +10,7 @@ using AuthService.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using MongoDB.Driver;
 using Serilog;
 using System.Text;
@@ -77,18 +77,13 @@ namespace Auth.API.Configurations
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
                     Scheme = JwtBearerDefaults.AuthenticationScheme,
-                    Description = "Enter your JWT Access Token",
-                    Reference = new OpenApiReference
-                    {
-                        Id = JwtBearerDefaults.AuthenticationScheme,
-                        Type = ReferenceType.SecurityScheme
-                    }
+                    Description = "Enter your JWT Access Token"
                 };
 
                 options.AddSecurityDefinition("Bearer", jwtSecurityScheme);
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
                 {
-                        { jwtSecurityScheme, Array.Empty<string>() }
+                    [new OpenApiSecuritySchemeReference("Bearer")] = []
                 });
             });
 

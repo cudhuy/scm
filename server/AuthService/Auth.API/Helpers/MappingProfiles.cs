@@ -9,8 +9,9 @@ namespace Auth.API.Helpers
     {
         public MappingProfiles()
         {
-            CreateMap<User, UserDto>();
-            CreateMap<User, UserRegisterMessage>();
+            // MaxDepth per map: mitigation CVE-2026-32933 (NU1903) — AutoMapper 14 dropped the global config
+            CreateMap<User, UserDto>().MaxDepth(64);
+            CreateMap<User, UserRegisterMessage>().MaxDepth(64);
         }
     }
 }

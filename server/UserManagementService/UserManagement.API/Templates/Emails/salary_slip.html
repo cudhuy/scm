@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .content {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .highlight {
+            color: #2d89ef;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            Xóm Cafe - Bảng Lương Tháng {{Month}}/{{Year}}
+        </div>
+        <div class="content">
+            Xin chào <span class="highlight">{{StaffName}}</span>,<br><br>
+
+            Chúng tôi xin gửi đến bạn bảng lương tháng <span class="highlight">{{Month}}/{{Year}}</span>.
+            Vui lòng kiểm tra file đính kèm để xem chi tiết thu nhập của bạn.<br><br>
+
+            Nếu có bất kỳ thắc mắc nào về bảng lương, vui lòng liên hệ với phòng nhân sự để được hỗ trợ.<br><br>
+
+            Cảm ơn bạn đã đồng hành cùng <span class="highlight">Xóm Cafe</span>. Chúc bạn một ngày làm việc vui vẻ!
+        </div>
+        <div class="footer">
+            &copy; {{CurrentYear}} Xóm Cafe. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

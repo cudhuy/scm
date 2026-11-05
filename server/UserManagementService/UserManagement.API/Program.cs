@@ -1,4 +1,5 @@
 ﻿using Prometheus;
+using QuestPDF.Infrastructure;
 using Serilog;
 using UserManagement.API.Configurations;
 using UserManagement.API.Helpers;
@@ -28,6 +29,9 @@ builder.Host.UseSerilog((context, services, configuration) =>
     .ReadFrom.Configuration(context.Configuration)
     .ReadFrom.Services(services);
 });
+
+// QuestPDF license — required before first Document use (Community tier, free < $1M revenue)
+QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
 

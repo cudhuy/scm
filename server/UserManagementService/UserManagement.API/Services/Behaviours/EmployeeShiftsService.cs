@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
-using NetTopologySuite.Index.HPRtree;
 using UserManagement.API.Dtos.WorkShift;
 using UserManagement.API.Repositories.Interfaces;
 using UserManagement.API.Services.Interfaces;

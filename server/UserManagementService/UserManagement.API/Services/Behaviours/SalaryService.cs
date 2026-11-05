@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
-using iTextSharp.text.pdf;
-using iTextSharp.text;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using UserManagement.API.Dtos.WorkShift;
 using UserManagement.API.Repositories.Interfaces;
 using UserManagement.API.Services.Interfaces;
@@ -216,123 +217,71 @@ namespace UserManagement.API.Services.Behaviours
 
         public async Task<byte[]> CreateFile(Salary salarySlip)
         {
+            // Non-generic Task so await at call site stays warning-free
+            await Task.CompletedTask;
             try
             {
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-
-                using (MemoryStream stream = new MemoryStream())
+                var document = Document.Create(container =>
                 {
-                    Document document = new Document(PageSize.A5, 25, 25, 30, 30);
-                    PdfWriter writer = PdfWriter.GetInstance(document, stream);
-                    document.Open();
-
-                    // Load font hỗ trợ tiếng Việt
-                    string fontPath = Path.Combine(_env.WebRootPath, "fonts", "arialuni.ttf");
-
-                    // Kiểm tra nếu file không tồn tại
-                    if (!File.Exists(fontPath))
+                    container.Page(page =>
                     {
-                        throw new FileNotFoundException($"Font file not found: {fontPath}");
-                    }
-                    BaseFont bf = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-                    Font fontTitle = new Font(bf, 16, Font.BOLD);
-                    Font fontHeader = new Font(bf, 12, Font.BOLD);
-                    Font fontBody = new Font(bf, 12);
-                    Font fontFooter = new Font(bf, 10, Font.ITALIC);
+                        page.Size(PageSizes.A5);
+                        page.MarginVertical(30);
+                        page.MarginHorizontal(25);
+                        page.Content().Column(col =>
+                        {
+                            col.Item().AlignCenter().Text("PHIẾU LƯƠNG NHÂN VIÊN").FontSize(16).Bold();
+                            col.Item().PaddingTop(10).AlignCenter().Text($"Kỳ lương: Tháng {salarySlip.Month}/{salarySlip.Year}").FontSize(12).SemiBold();
 
-                    // Tiêu đề
-                    Paragraph title = new Paragraph("PHIẾU LƯƠNG NHÂN VIÊN", fontTitle);
-                    title.Alignment = Element.ALIGN_CENTER;
-                    title.SpacingAfter = 10;
-                    document.Add(title);
+                            col.Item().PaddingTop(10).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(4);
+                                    columns.RelativeColumn(6);
+                                });
+                                table.Header(header =>
+                                {
+                                    header.Cell().Background("#DCDCDC").Padding(5).AlignCenter().Text("Thông tin").SemiBold();
+                                    header.Cell().Background("#DCDCDC").Padding(5).AlignCenter().Text("Giá trị").SemiBold();
+                                });
 
-                    // Thông tin chung
-                    Paragraph info = new Paragraph($"Kỳ lương: Tháng {salarySlip.Month}/{salarySlip.Year}", fontHeader);
-                    info.SpacingAfter = 10;
-                    document.Add(info);
+                                void AddRow(string label, string value)
+                                {
+                                    table.Cell().Padding(5).AlignCenter().Text(label);
+                                    table.Cell().Padding(5).AlignCenter().Text(value);
+                                }
 
-                    // Tạo bảng
-                    PdfPTable table = new PdfPTable(2);
-                    table.WidthPercentage = 100;
-                    table.SetWidths(new float[] { 40f, 60f });
+                                AddRow("Tên Nhân Viên", salarySlip.Employee.FullName);
+                                AddRow("Lương Cơ Bản", $"{salarySlip.SalaryBase:N0} VND");
+                                AddRow("Số Giờ Làm", $"{salarySlip.TotalHours}");
+                                AddRow("Số Ca Làm", $"{salarySlip.TotalNumberOfShifts}");
+                                AddRow("Số Ca Đến Muộn", $"{salarySlip.TotalLateShifts}");
+                                AddRow("Số Ca Nghỉ", $"{salarySlip.TotalAbsentShifts}");
+                                AddRow("Số Ca Không Hoàn Thành", $"{salarySlip.TotalNotCompleteShifts}");
+                                AddRow("Thưởng", $"{salarySlip.Bonus:N0} VND");
+                                AddRow("Phạt", $"{salarySlip.Penalty:N0} VND");
+                                AddRow("Tổng Lương", $"{salarySlip.NetSalary:N0} VND");
+                            });
 
-                    void AddHeaderCell(string text)
-                    {
-                        PdfPCell cell = new PdfPCell(new Phrase(text, fontHeader));
-                        cell.BackgroundColor = new BaseColor(220, 220, 220);
-                        cell.HorizontalAlignment = Element.ALIGN_CENTER;
-                        cell.Padding = 5;
-                        table.AddCell(cell);
-                    }
+                            // Thêm ngày lập phiếu
+                            col.Item().PaddingTop(10).AlignRight().Text($"Ngày lập phiếu: {DateTime.Now:dd/MM/yyyy}");
 
-                    void AddDataCell(string text)
-                    {
-                        PdfPCell cell = new PdfPCell(new Phrase(text, fontBody));
-                        cell.HorizontalAlignment = Element.ALIGN_CENTER;
-                        cell.Padding = 5;
-                        table.AddCell(cell);
-                    }
+                            // Thêm ghi chú hoặc lời nhắn
+                            col.Item().PaddingTop(10).AlignCenter().Text("Cảm ơn bạn đã làm việc chăm chỉ! Chúc bạn một ngày tốt lành!").FontSize(10).Italic();
+                        });
 
-                    AddHeaderCell("Thông tin");
-                    AddHeaderCell("Giá trị");
+                        // Thêm tên quán vào góc dưới bên phải
+                        page.Footer().AlignRight().Text(text =>
+                        {
+                            text.AlignRight();
+                            text.DefaultTextStyle(x => x.FontSize(10).Italic());
+                            text.Span("Xóm Cafe");
+                        });
+                    });
+                });
 
-                    AddHeaderCell("Tên Nhân Viên");
-                    AddDataCell(salarySlip.Employee.FullName);
-                    AddHeaderCell("Lương Cơ Bản");
-                    AddDataCell($"{salarySlip.SalaryBase:N0} VND");
-                    AddHeaderCell("Số Giờ Làm");
-                    AddDataCell($"{salarySlip.TotalHours}");
-                    AddHeaderCell("Số Ca Làm");
-                    AddDataCell($"{salarySlip.TotalNumberOfShifts}");
-                    AddHeaderCell("Số Ca Đến Muộn");
-                    AddDataCell($"{salarySlip.TotalLateShifts}");
-                    AddHeaderCell("Số Ca Nghỉ");
-                    AddDataCell($"{salarySlip.TotalAbsentShifts}");
-                    AddHeaderCell("Số Ca Không Hoàn Thành");
-                    AddDataCell($"{salarySlip.TotalNotCompleteShifts}");
-                    AddHeaderCell("Thưởng");
-                    AddDataCell($"{salarySlip.Bonus:N0} VND");
-                    AddHeaderCell("Phạt");
-                    AddDataCell($"{salarySlip.Penalty:N0} VND");
-                    AddHeaderCell("Tổng Lương");
-                    AddDataCell($"{salarySlip.NetSalary:N0} VND");
-
-                    document.Add(table);
-                    // Thêm ngày lập phiếu
-                    Paragraph date = new Paragraph($"Ngày lập phiếu: {DateTime.Now:dd/MM/yyyy}", fontBody)
-                    {
-                        Alignment = Element.ALIGN_RIGHT,
-                        SpacingAfter = 10
-                    };
-                    document.Add(date);
-
-                    // Thêm ghi chú hoặc lời nhắn
-                    Paragraph note = new Paragraph("Cảm ơn bạn đã làm việc chăm chỉ! Chúc bạn một ngày tốt lành!", fontFooter)
-                    {
-                        Alignment = Element.ALIGN_CENTER,
-                        SpacingAfter = 20
-                    };
-                    document.Add(note);
-
-                    // Thêm tên quán vào góc dưới bên phải
-                    string storeName = "Xóm Cafe"; // Đổi thành tên quán của bạn
-                    ColumnText.ShowTextAligned(
-                        writer.DirectContent,
-                        Element.ALIGN_RIGHT,
-                        new Phrase(storeName, fontFooter),
-                        document.Right, // Cạnh phải
-                        document.Bottom - 20, // Xuống sát mép dưới
-                        0
-                    );
-
-                    document.Close();
-                    return stream.ToArray();
-                }
-            }
-            catch (FileNotFoundException fnfEx)
-            {
-                _logger.LogError("File error: {0}", fnfEx.Message);
-                throw;
+                return document.GeneratePdf();
             }
             catch (Exception ex)
             {
@@ -341,22 +290,6 @@ namespace UserManagement.API.Services.Behaviours
             }
         }
 
-
-
-        private void AddCellToHeader(PdfPTable table, string text, Font font)
-        {
-            PdfPCell cell = new PdfPCell(new Phrase(text, font));
-            cell.HorizontalAlignment = Element.ALIGN_CENTER;
-            cell.BackgroundColor = new BaseColor(240, 240, 240);
-            table.AddCell(cell);
-        }
-
-        private void AddCellToBody(PdfPTable table, string text, Font font)
-        {
-            PdfPCell cell = new PdfPCell(new Phrase(text, font));
-            cell.HorizontalAlignment = Element.ALIGN_CENTER;
-            table.AddCell(cell);
-        }
 
 
         #endregion

@@ -4,7 +4,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using System.Text;
 using UserManagement.API.Helpers;
@@ -73,18 +73,13 @@ namespace UserManagement.API.Configurations
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
                     Scheme = JwtBearerDefaults.AuthenticationScheme,
-                    Description = "Enter your JWT Access Token",
-                    Reference = new OpenApiReference
-                    {
-                        Id = JwtBearerDefaults.AuthenticationScheme,
-                        Type = ReferenceType.SecurityScheme
-                    }
+                    Description = "Enter your JWT Access Token"
                 };
 
                 options.AddSecurityDefinition("Bearer", jwtSecurityScheme);
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
                 {
-                        { jwtSecurityScheme, Array.Empty<string>() }
+                    [new OpenApiSecuritySchemeReference("Bearer")] = []
                 });
             });
 
@@ -99,7 +94,7 @@ namespace UserManagement.API.Configurations
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<SCMDbContext>(options =>
-                options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 33))));
+                options.UseMySQL(connectionString));
 
             services.AddScoped<RedisHelper>();
             services.AddValidatorsFromAssemblyContaining<CreateMonthlySalaryDtoValidator>();

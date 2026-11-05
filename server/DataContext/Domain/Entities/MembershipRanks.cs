@@ -11,7 +11,7 @@ namespace Domain.Entities
         [Required]
         [StringLength(500)]
         public string Description { get; set; }
-        public string Avatar { get; set; }
+        public string? Avatar { get; set; }
         public decimal RequiredAmount { get; set; }
         public virtual ICollection<User> Users { get; set; }
         public virtual ICollection<MembershipRanksVouchers> MembershipRanksVouchers { get; set; }

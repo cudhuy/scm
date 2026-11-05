@@ -1,0 +1,71 @@
+using Auth.API.Configurations;
+using Auth.API.Messaging.Consumers;
+using Auth.API.Messaging.KafkaMessage;
+using Prometheus;
+using Serilog;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Deploy
+builder.WebHost.UseUrls("http://0.0.0.0:11114");
+
+// Add services to the container.
+builder.Services.ConfigureServices(builder.Configuration);
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+var kafkaConfig = builder.Configuration.GetSection("Kafka").Get<KafkaSettings>();
+builder.Services.AddSingleton(kafkaConfig);
+builder.Services.AddHostedService<ConsumerBackgroundService>();
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services);
+});
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API V1");
+    });
+}
+else
+{
+    app.UseHttpsRedirection();
+}
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("ClientIp", httpContext.Connection.RemoteIpAddress?.ToString());
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+        diagnosticContext.Set("RequestPath", httpContext.Request.Path);
+        diagnosticContext.Set("UserId", httpContext.User?.FindFirst("sub")?.Value ?? "Anonymous");
+    };
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} from {ClientIp}";
+});
+
+app.UseCors("AllowCredentials");
+app.UseRouting();
+
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/metrics"), appBuilder =>
+{
+    appBuilder.UseAuthentication();
+    appBuilder.UseAuthorization();
+});
+
+app.UseMetricServer();
+app.UseHttpMetrics();
+
+
+
+app.MapControllers();
+
+app.Run();

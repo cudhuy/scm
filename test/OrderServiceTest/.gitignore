@@ -1,0 +1,27 @@
+# Thư mục build
+bin
+obj
+
+# Thư mục test kết quả
+TestResults
+
+# File cấu hình user trong Visual Studio
+.user
+.suo
+.vspscc
+.vssscc
+
+# File lock và temporary
+project.lock.json
+.lock.json
+
+# Thư mục debug
+.pdb
+.log
+
+# Thư mục cache của Visual Studio
+.vscode
+.vs
+
+# Thư mục dependency của .NET
+packages

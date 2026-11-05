@@ -9,12 +9,12 @@ namespace Branch.API.Helpers
     {
         public MappingProfiles()
         {
-            CreateMap<CreateBranchDto, Domain.Entities.Branch>();
-            CreateMap<UpdateBranchDto, Domain.Entities.Branch>();
-            CreateMap<Domain.Entities.Branch, BranchDetailDto>();
-            CreateMap<PromotionalBanner, BannerDto>();
-            CreateMap<BannerDto, PromotionalBanner>();
-            CreateMap<UpdateBannerFormDto, PromotionalBanner>();
+            CreateMap<CreateBranchDto, Domain.Entities.Branch>().MaxDepth(64);
+            CreateMap<UpdateBranchDto, Domain.Entities.Branch>().MaxDepth(64);
+            CreateMap<Domain.Entities.Branch, BranchDetailDto>().MaxDepth(64);
+            CreateMap<PromotionalBanner, BannerDto>().MaxDepth(64);
+            CreateMap<BannerDto, PromotionalBanner>().MaxDepth(64);
+            CreateMap<UpdateBannerFormDto, PromotionalBanner>().MaxDepth(64);
 
         }
     }

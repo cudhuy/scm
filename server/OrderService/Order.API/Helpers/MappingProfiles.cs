@@ -9,14 +9,14 @@ namespace Order.API.Helpers
     {
         public MappingProfiles()
         {
-            CreateMap<CancelReason, CancelReasonDto>();
+            CreateMap<CancelReason, CancelReasonDto>().MaxDepth(64);
 
             // mapping OrderDto (OrderManagement)
             CreateMap<Domain.Entities.Order, OrderDto>()
                 .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.Name));
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.Name)).MaxDepth(64);
 
             CreateMap<Domain.Entities.Order, OrderOffDto>()
             .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
@@ -32,7 +32,7 @@ namespace Order.API.Helpers
         src.Branch.BranchTables
             .Where(bt => bt.Id == src.TableId)
             .Select(bt => bt.TableNumber)
-            .FirstOrDefault() ?? null));
+            .FirstOrDefault() ?? null)).MaxDepth(64);
 
         }
     }
